@@ -4,38 +4,111 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Basic Chat App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            padding: 10px;
+            margin: 0;
+            background-color: #4a76a8;
+            color: #fff;
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            margin: 10px;
+            border-radius: 8px;
+        }
+        .message {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: flex-start;
+        }
+        .message.user {
+            justify-content: flex-end;
+        }
+        .message-bubble {
+            max-width: 60%;
+            padding: 10px;
+            border-radius: 15px;
+            background-color: #4a76a8;
+            color: #fff;
+            margin: 5px;
+        }
+        .message.user .message-bubble {
+            background-color: #d1e7ff;
+            color: #000;
+        }
+        #input-section {
+            display: flex;
+            padding: 10px;
+            background-color: #f0f2f5;
+            border-top: 1px solid #ddd;
+        }
+        #message {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        #sendbtn {
+            background-color: #4a76a8;
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #sendbtn:hover {
+            background-color: #3a5c8a;
+        }
+    </style>
 </head>
 <body>
-    <h1> Chatting </h1>
-    <input type="text" id="message" placeholder="Enter Message"/>
-    <button id="sendbtn">Send</button>
-    <div id="msglist"></div>
+    <h1>Chatting App</h1>
+    <div class="chat-container" id="msglist"></div>
+    <div id="input-section">
+        <input type="text" id="message" placeholder="Enter your message..."/>
+        <button id="sendbtn">Send</button>
+    </div>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-       const socket = io('https://simple-socket-chat-kappa.vercel.app/');
+        const socket = io();
         const sendbtn = document.getElementById("sendbtn");
         const messageInput = document.getElementById("message");
         const messagelist = document.getElementById("msglist");
 
-        socket.on("chat message", message => {
-           const item = document.createElement("li");
-           item.textContent = message;
-           messagelist.appendChild(item);
-           messageInput.value = "";
-
+        socket.on("chat message", (message) => {
+            const item = document.createElement("div");
+            item.classList.add("message", message.isUser ? "user" : "");
+            const bubble = document.createElement("div");
+            bubble.classList.add("message-bubble");
+            bubble.textContent = message.text;
+            item.appendChild(bubble);
+            messagelist.appendChild(item);
+            messagelist.scrollTop = messagelist.scrollHeight; 
         });
 
-
-        sendbtn.addEventListener("click", e => {
+        sendbtn.addEventListener("click", (e) => {
             const message = messageInput.value;
-            console.log(message);
-            socket.emit("chat message", message);
-
-
+            if (message.trim() !== '') {
+                socket.emit("chat message", { text: message, isUser: true });
+                messageInput.value = ""; 
+            }
         });
-
-
-   
     </script>
 </body>
 </html>

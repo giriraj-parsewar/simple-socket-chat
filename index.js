@@ -20,7 +20,7 @@ io.on("connection", (socket) => {
 });
 app.use(express.static(path.resolve("./public")));
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "./public/index.html");
+  res.sendFile(path.resolve(__dirname, "./public/index.html"));
 });
 
 server.listen(9000, () => console.log("Server is running on port 9000"));
