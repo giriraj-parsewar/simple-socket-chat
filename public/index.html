@@ -73,42 +73,96 @@
             cursor: pointer;
         }
         #sendbtn:hover {
-            background-color: #2dbc53;
+            background-color: #7bda95;
+        }
+        #username-section {
+            display: flex;
+            padding: 10px;
+            background-color: #f0f2f5;
+            border-bottom: 1px solid #ddd;
+        }
+        #username {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        #joinbtn {
+            background-color:  #2dbc53;
+            color: #000000;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #joinbtn:hover {
+            background-color: #87e5a0;
         }
     </style>
 </head>
 <body>
     <h1>Chatting App</h1>
     <div class="chat-container" id="msglist"></div>
-    <div id="input-section">
-        <input type="text" id="message" placeholder="Enter your message..."/>
-        <button id="sendbtn">Send</button>
+    
+    <!-- Username input section -->
+    <div id="username-section">
+        <input type="text" id="username" placeholder="Enter your username..." />
+        <button id="joinbtn">Join</button>
     </div>
+
+    <!-- Message input section -->
+    <div id="input-section">
+        <input type="text" id="message" placeholder="Enter your message..." disabled />
+        <button id="sendbtn" disabled>Send</button>
+    </div>
+    
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
+        const joinbtn = document.getElementById("joinbtn");
         const sendbtn = document.getElementById("sendbtn");
         const messageInput = document.getElementById("message");
         const messagelist = document.getElementById("msglist");
+        let username = "";
 
-        socket.on("chat message", (message) => {
-            const item = document.createElement("div");
-            item.classList.add("message", message.isUser ? "user" : "");
-            const bubble = document.createElement("div");
-            bubble.classList.add("message-bubble");
-            bubble.textContent = message.text;
-            item.appendChild(bubble);
-            messagelist.appendChild(item);
-            messagelist.scrollTop = messagelist.scrollHeight; 
-        });
-
-        sendbtn.addEventListener("click", (e) => {
-            const message = messageInput.value;
-            if (message.trim() !== '') {
-                socket.emit("chat message", { text: message, isUser: true });
-                messageInput.value = ""; 
+        // Join button event listener
+        joinbtn.addEventListener("click", () => {
+            const userInput = document.getElementById("username").value;
+            if (userInput.trim() !== '') {
+                username= userInput;
+                messageInput.disabled = false;
+                sendbtn.disabled = false;
+                socket.emit("user joined", username);
+                addMessage(`${username} has joined the chat`, true);
             }
         });
+
+        // Send button event listener
+        sendbtn.addEventListener("click", () => {
+            const message = messageInput.value;
+            if (message.trim() !== '') {
+                socket.emit("chat message", message);
+                messageInput.value = '';
+            }
+        });
+
+        // Listen for chat messages
+        socket.on("chat message", (msg) => {
+            addMessage(msg);
+        });
+
+        // Function to add messages to the chat
+        function addMessage(msg, isSystemMessage = false) {
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("message");
+            if (isSystemMessage) {
+                messageElement.classList.add("user");
+            }
+            messageElement.innerHTML = `<div class="message-bubble">${msg}</div>`;
+            messagelist.appendChild(messageElement);
+            messagelist.scrollTop = messagelist.scrollHeight; // Scroll to the bottom
+        }
     </script>
 </body>
 </html>
